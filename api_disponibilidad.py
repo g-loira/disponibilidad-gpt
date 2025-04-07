@@ -14,11 +14,14 @@ app.add_middleware(
 
 @app.get("/disponibilidad")
 def leer_disponibilidad():
-    SERVICE_ACCOUNT_FILE = 'credenciales.json'
+    SERVICE_ACCOUNT_FILE = 'credenciales.json'  # ⚠️ Lo moveremos a variable de entorno en Railway
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
-    SPREADSHEET_ID = '1mJ5LIG5yTAsnoz13TYE9C1_tlT0JTZpHn-qjDCOCc5s'  # 👈 Tu ID real
+    creds = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+
+    SPREADSHEET_ID = '1mJ5LIG5yTAsnoz13TYE9C1_tlT0JTZpHn-qjDCOCc5s'
     RANGE_NAME = 'DISPONIBILIDAD!A1:Z1000'
 
     service = build('sheets', 'v4', credentials=creds)
@@ -26,7 +29,22 @@ def leer_disponibilidad():
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
     values = result.get('values', [])
 
-    headers = values[0]
-    data = [dict(zip(headers, row)) for row in values[1:]]
+    if not values:
+        return {"apartamentos": []}
 
-    return {"apartamentos": data}
+    headers = values[0]
+    rows = values[1:]
+
+    apartamentos = [
+        {
+            "nombre": r[headers.index("nombre")],
+            "disponible": r[headers.index("disponible")].lower() == "true",
+            "desde": r[headers.index("desde")],
+            "hasta": r[headers.index("hasta")]
+        }
+        for r in rows
+        if len(r) >= len(headers)
+    ]
+
+    return {"apartamentos": apartamentos}
+
