@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import json
 
 app = FastAPI()
 
@@ -14,11 +16,11 @@ app.add_middleware(
 
 @app.get("/disponibilidad")
 def leer_disponibilidad():
-    SERVICE_ACCOUNT_FILE = 'credenciales.json'  # ⚠️ Lo moveremos a variable de entorno en Railway
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    SERVICE_ACCOUNT_INFO = json.loads(os.getenv("GOOGLE_CREDENTIALS"))
+    creds = service_account.Credentials.from_service_account_info(
+        SERVICE_ACCOUNT_INFO, scopes=SCOPES
     )
 
     SPREADSHEET_ID = '1mJ5LIG5yTAsnoz13TYE9C1_tlT0JTZpHn-qjDCOCc5s'
@@ -47,4 +49,3 @@ def leer_disponibilidad():
     ]
 
     return {"apartamentos": apartamentos}
-
