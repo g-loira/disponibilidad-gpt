@@ -39,13 +39,21 @@ def leer_disponibilidad():
 
     apartamentos = [
         {
-            "nombre": r[headers.index("nombre")],
-            "disponible": r[headers.index("disponible")].lower() == "true",
-            "desde": r[headers.index("desde")],
-            "hasta": r[headers.index("hasta")]
+            "nombre": r[headers.index("Propiedad")],
+            "disponible": True,  # Aquí puedes adaptar más lógica si tienes un campo real
+            "desde": r[headers.index("Available from")],
+            "hasta": r[headers.index("MES")]
         }
         for r in rows
         if len(r) >= len(headers)
     ]
 
     return {"apartamentos": apartamentos}
+
+
+# 👇 Necesario para que funcione en Railway
+import uvicorn
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("api_disponibilidad:app", host="0.0.0.0", port=port)
